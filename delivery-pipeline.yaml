@@ -1,0 +1,17 @@
+apiVersion: deploy.cloud.google.com/v1
+kind: DeliveryPipeline
+metadata:
+  name: vamsi-pipeline
+description: Pipeline for deploying to Cloud Run
+serialPipeline:
+  stages:
+    - targetId: prod
+      profiles: []
+---
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+  name: prod
+description: Production environment
+run:
+  location: projects/enhub-cloud-interns/locations/asia-east1
