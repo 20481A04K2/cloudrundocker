@@ -57,7 +57,7 @@ steps:
     id: create-release
     waitFor: ['apply-deploy-config']
 
-  # Step 6: Promote the release to the target (fixed rollout name)
+  # Step 6: Promote the release to the target (fixing rollout name format)
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
