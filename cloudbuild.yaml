@@ -44,16 +44,18 @@ steps:
       ]
     id: apply-deploy-config
 
-  # Step 5: Create a Release using Cloud Deploy with safe name
+  # Step 5: Create a Release using a safe lowercase hyphenated build ID
   - name: 'gcr.io/cloud-builders/gcloud'
     id: create-release
     waitFor: ['apply-deploy-config']
     entrypoint: bash
     args:
-      - -c
+      - '-c'
       - |
-        SAFE_ID=$(echo "${BUILD_ID}" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-' | cut -c1-30)
-        gcloud deploy releases create vamsi-release-${SAFE_ID} \
+        SAFE_ID=$(echo "$BUILD_ID" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-' | cut -c1-30)
+        RELEASE_NAME="vamsi-release-${SAFE_ID}"
+        echo "Creating release: $RELEASE_NAME"
+        gcloud deploy releases create "$RELEASE_NAME" \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
           --delivery-pipeline=vamsi-pipeline \
@@ -65,10 +67,12 @@ steps:
     waitFor: ['create-release']
     entrypoint: bash
     args:
-      - -c
+      - '-c'
       - |
-        SAFE_ID=$(echo "${BUILD_ID}" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-' | cut -c1-30)
-        gcloud deploy releases promote vamsi-release-${SAFE_ID} \
+        SAFE_ID=$(echo "$BUILD_ID" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-' | cut -c1-30)
+        RELEASE_NAME="vamsi-release-${SAFE_ID}"
+        echo "Promoting release: $RELEASE_NAME"
+        gcloud deploy releases promote "$RELEASE_NAME" \
           --project=enhub-cloud-interns \
           --region=asia-east1
 
