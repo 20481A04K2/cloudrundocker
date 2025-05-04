@@ -1,5 +1,5 @@
 steps:
-  # Step 1: Ensure Artifact Registry exists
+  # Step 1: Ensure Artifact Registry repository exists
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -44,35 +44,28 @@ steps:
       ]
     id: apply-deploy-config
 
-  # Step 5: Create a unique release with timestamp
+  # Step 5: Create a Release using Cloud Deploy
   - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
     args:
-      - '-c'
-      - |
-        RELEASE_NAME="vamsi-release-$(date +%s)"
-        echo "Creating release: $RELEASE_NAME"
-        gcloud deploy releases create "$RELEASE_NAME" \
-          --project=enhub-cloud-interns \
-          --region=asia-east1 \
-          --delivery-pipeline=vamsi-pipeline \
-          --images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest
-        echo "$RELEASE_NAME" > release-name.txt
+      [
+        'deploy', 'releases', 'create', 'vamsi-release',
+        '--project=enhub-cloud-interns',
+        '--region=asia-east1',
+        '--delivery-pipeline=vamsi-pipeline',
+        '--images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
+      ]
     id: create-release
     waitFor: ['apply-deploy-config']
 
-  # Step 6: Promote the release to the target
+  # Step 6: Promote the release to the target (no rollout ID required)
   - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
     args:
-      - '-c'
-      - |
-        RELEASE_NAME=$(cat release-name.txt)
-        echo "Promoting release: $RELEASE_NAME"
-        gcloud deploy rollouts approve \
-          --release="$RELEASE_NAME" \
-          --region=asia-east1 \
-          --project=enhub-cloud-interns
+      [
+        'deploy', 'rollouts', 'approve',
+        '--release=vamsi-release',
+        '--region=asia-east1',
+        '--project=enhub-cloud-interns'
+      ]
     waitFor: ['create-release']
 
 images:
@@ -81,4 +74,4 @@ images:
 options:
   logging: CLOUD_LOGGING_ONLY
 
-serviceAccount: 1064351983714-compute@developer.gserviceaccount.com
+serviceAccount: 1064351983714-compute@developer.gserviceaccount
