@@ -50,7 +50,7 @@ steps:
     args:
       - '-c'
       - |
-        # Define the release name
+        # Define the release name here, but DO NOT pass it as a substitution variable
         RELEASE_NAME="vamsi-release"
         
         # Check if the release exists
