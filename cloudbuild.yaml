@@ -44,49 +44,35 @@ steps:
       ]
     id: apply-deploy-config
 
-  # Step 5: Delete existing release if it exists
+  # Step 5: Create a new release with dynamic timestamp-based name
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        if gcloud deploy releases describe vamsi-release \
+        export RELEASE_NAME="vamsi-release-$(date +%s)"
+        echo "Creating release: $RELEASE_NAME"
+        gcloud deploy releases create $RELEASE_NAME \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
-          --delivery-pipeline=vamsi-pipeline >/dev/null 2>&1; then
-          echo "Release vamsi-release exists. Deleting..."
-          gcloud deploy releases delete vamsi-release \
-            --project=enhub-cloud-interns \
-            --region=asia-east1 \
-            --delivery-pipeline=vamsi-pipeline \
-            --quiet
-        else
-          echo "No existing release found."
-        fi
-    waitFor: ['apply-deploy-config']
-
-  # Step 6: Create a new release
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args:
-      [
-        'deploy', 'releases', 'create', 'vamsi-release',
-        '--project=enhub-cloud-interns',
-        '--region=asia-east1',
-        '--delivery-pipeline=vamsi-pipeline',
-        '--images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
-      ]
+          --delivery-pipeline=vamsi-pipeline \
+          --images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest
+        echo $RELEASE_NAME > release-name.txt
     id: create-release
     waitFor: ['apply-deploy-config']
 
-  # Step 7: Promote the release to the target
+  # Step 6: Approve rollout using dynamic release name
   - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
     args:
-      [
-        'deploy', 'rollouts', 'approve',
-        '--release=vamsi-release',
-        '--region=asia-east1',
-        '--project=enhub-cloud-interns'
-      ]
+      - '-c'
+      - |
+        RELEASE_NAME=$(cat release-name.txt)
+        echo "Promoting release: $RELEASE_NAME"
+        gcloud deploy rollouts approve \
+          --release=$RELEASE_NAME \
+          --region=asia-east1 \
+          --project=enhub-cloud-interns
     waitFor: ['create-release']
 
 images:
