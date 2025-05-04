@@ -44,11 +44,11 @@ steps:
       ]
     id: apply-deploy-config
 
-  # Step 5: Create a Release using a safe lowercase hyphenated build ID
+  # Step 5: Create a Release with safe name
   - name: 'gcr.io/cloud-builders/gcloud'
     id: create-release
     waitFor: ['apply-deploy-config']
-    entrypoint: bash
+    entrypoint: 'bash'
     args:
       - '-c'
       - |
@@ -61,11 +61,11 @@ steps:
           --delivery-pipeline=vamsi-pipeline \
           --images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest
 
-  # Step 6: Promote the release to the target
+  # Step 6: Promote the release
   - name: 'gcr.io/cloud-builders/gcloud'
     id: promote-release
     waitFor: ['create-release']
-    entrypoint: bash
+    entrypoint: 'bash'
     args:
       - '-c'
       - |
@@ -82,5 +82,5 @@ images:
 options:
   logging: CLOUD_LOGGING_ONLY
 
-# Use your compute engine default service account
+# Use your Compute Engine default service account
 serviceAccount: 1064351983714-compute@developer.gserviceaccount.com
