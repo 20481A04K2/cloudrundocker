@@ -1,5 +1,5 @@
 steps:
-  # Step 1: Ensure Artifact Registry repository exists
+  # Step 1: Ensure Artifact Registry exists
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -33,7 +33,7 @@ steps:
         'asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
       ]
 
-  # Step 4: Apply Cloud Deploy Delivery Pipeline and Target configuration
+  # Step 4: Apply Cloud Deploy configs (pipeline & target)
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
@@ -44,24 +44,24 @@ steps:
       ]
     id: apply-deploy-config
 
-  # Step 5: Create a new release with dynamic timestamp-based name
+  # Step 5: Create a release with a timestamp-based unique name
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        export RELEASE_NAME="vamsi-release-$(date +%s)"
+        RELEASE_NAME="vamsi-release-$(date +%s)"
         echo "Creating release: $RELEASE_NAME"
-        gcloud deploy releases create $RELEASE_NAME \
+        gcloud deploy releases create "$RELEASE_NAME" \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
           --delivery-pipeline=vamsi-pipeline \
           --images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest
-        echo $RELEASE_NAME > release-name.txt
+        echo "$RELEASE_NAME" > release-name.txt
     id: create-release
     waitFor: ['apply-deploy-config']
 
-  # Step 6: Approve rollout using dynamic release name
+  # Step 6: Promote rollout using the dynamic release name
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -70,7 +70,7 @@ steps:
         RELEASE_NAME=$(cat release-name.txt)
         echo "Promoting release: $RELEASE_NAME"
         gcloud deploy rollouts approve \
-          --release=$RELEASE_NAME \
+          --release="$RELEASE_NAME" \
           --region=asia-east1 \
           --project=enhub-cloud-interns
     waitFor: ['create-release']
