@@ -10,8 +10,6 @@ build:
         dockerfile: Dockerfile
   tagPolicy:
     sha256: {}
-  local:
-    push: false
 deploy:
   cloudrun:
     projectId: enhub-cloud-interns
