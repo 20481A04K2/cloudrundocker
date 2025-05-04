@@ -57,15 +57,14 @@ steps:
     id: create-release
     waitFor: ['apply-deploy-config']
 
-  # Step 6: Promote the release to the target (fixed rollout name)
+  # Step 6: Promote the release to the target (no rollout ID required)
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
         'deploy', 'rollouts', 'approve',
         '--release=vamsi-release',
         '--region=asia-east1',
-        '--project=enhub-cloud-interns',
-        '--rollout=vamsi-rollout'
+        '--project=enhub-cloud-interns'
       ]
     waitFor: ['create-release']
 
