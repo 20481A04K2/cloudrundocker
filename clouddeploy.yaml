@@ -21,19 +21,3 @@ metadata:
 description: Cloud Run target in asia-east1
 run:
   location: asia-east1
-
----
-# Cloud Deploy Release Configuration
-apiVersion: deploy.cloud.google.com/v1
-kind: Release
-metadata:
-  name: vamsi-release-${BUILD_ID}
-spec:
-  pipeline:
-    name: vamsi-pipeline
-    stages:
-      - targetId: vamsi-deploy-target-1
-  images:
-    - image: asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest
-  annotations:
-    clouddeploy.googleapis.com/region: asia-east1
