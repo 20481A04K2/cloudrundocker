@@ -79,6 +79,8 @@ steps:
         ROLLOUT_EXISTS=$$(gcloud deploy rollouts list \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
+          --delivery-pipeline=vamsi-pipeline \
+          --release=$$RELEASE_NAME \
           --filter="release:$$RELEASE_NAME" \
           --format="value(rolloutId)")
 
@@ -104,6 +106,8 @@ steps:
         ROLLOUT_ID=$$(gcloud deploy rollouts list \
           --region=asia-east1 \
           --project=enhub-cloud-interns \
+          --delivery-pipeline=vamsi-pipeline \
+          --release=$$RELEASE_NAME \
           --filter="release:$$RELEASE_NAME" \
           --format="value(rolloutId)")
 
