@@ -1,7 +1,10 @@
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
-  name: prod
-description: Production target for Cloud Run
-run:
-  location: asia-east1
+  name: vamsi-deploy-target-1
+  region: asia-east1
+spec:
+  gcpTarget:
+    cloudRun:
+      service: vamsi-service
+      location: asia-east1
