@@ -54,7 +54,7 @@ steps:
         RELEASE_EXISTS=$$(gcloud deploy releases list \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
-          --filter="name:$RELEASE_NAME" \
+          --filter="name:$$RELEASE_NAME" \
           --format="value(name)")
 
         if [ -z "$$RELEASE_EXISTS" ]; then
@@ -79,7 +79,7 @@ steps:
         ROLLOUT_EXISTS=$$(gcloud deploy rollouts list \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
-          --filter="release=$$RELEASE_NAME" \
+          --filter="release:$$RELEASE_NAME" \
           --format="value(rolloutId)")
 
         if [ -z "$$ROLLOUT_EXISTS" ]; then
@@ -104,7 +104,7 @@ steps:
         ROLLOUT_ID=$$(gcloud deploy rollouts list \
           --region=asia-east1 \
           --project=enhub-cloud-interns \
-          --filter="release=$$RELEASE_NAME" \
+          --filter="release:$$RELEASE_NAME" \
           --format="value(rolloutId)")
 
         if [ -z "$$ROLLOUT_ID" ]; then
