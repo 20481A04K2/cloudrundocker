@@ -20,4 +20,4 @@ metadata:
     clouddeploy.googleapis.com/location: asia-east1
 description: Cloud Run target in asia-east1
 run:
-  location: asia-east1
+  location: projects/enhub-cloud-interns/locations/asia-east1
