@@ -50,9 +50,13 @@ steps:
     args:
       - '-c'
       - |
+        # Define the release name
         RELEASE_NAME="vamsi-release"
+        
+        # Check if the release exists
         echo "Checking if release $RELEASE_NAME exists."
-        RELEASE_EXISTS=$(gcloud deploy releases describe $RELEASE_NAME --project=enhub-cloud-interns --region=asia-east1 --format="value(name)" || echo "not_found")
+        RELEASE_EXISTS=$(gcloud deploy releases describe $RELEASE_NAME --project=enhub-cloud-interns --region=asia-east1 --format="value(name)" 2>/dev/null || echo "not_found")
+
         if [ "$RELEASE_EXISTS" == "not_found" ]; then
           echo "Release does not exist. Creating it now."
           gcloud deploy releases create $RELEASE_NAME \
