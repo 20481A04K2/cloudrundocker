@@ -48,7 +48,7 @@ steps:
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
-        'deploy', 'releases', 'create', 'vamsi-release-${BUILD_ID}',
+        'deploy', 'releases', 'create', 'vamsi-release',
         '--project=enhub-cloud-interns',
         '--region=asia-east1',
         '--delivery-pipeline=vamsi-pipeline',
@@ -57,15 +57,15 @@ steps:
     id: create-release
     waitFor: ['apply-deploy-config']
 
-  # Step 6: Promote the release to the target (fixing rollout name format)
+  # Step 6: Promote the release to the target (fixed rollout name)
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
         'deploy', 'rollouts', 'approve',
-        '--release=vamsi-release-${BUILD_ID}',
+        '--release=vamsi-release',
         '--region=asia-east1',
         '--project=enhub-cloud-interns',
-        '--rollout=vamsi-rollout-${BUILD_ID}'
+        '--rollout=vamsi-rollout'
       ]
     waitFor: ['create-release']
 
