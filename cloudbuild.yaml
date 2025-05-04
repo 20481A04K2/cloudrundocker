@@ -50,7 +50,8 @@ steps:
     args:
       - '-c'
       - |
-        RELEASE_NAME="vamsi-release"
+        RELEASE_NAME="vamsi-release-${BUILD_ID}"
+        echo "Checking if release $RELEASE_NAME exists."
         if ! gcloud deploy releases describe $RELEASE_NAME --project=enhub-cloud-interns --region=asia-east1; then
           echo "Release does not exist. Creating it now."
           gcloud deploy releases create $RELEASE_NAME \
@@ -69,7 +70,7 @@ steps:
     args:
       [
         'deploy', 'rollouts', 'approve',
-        '--release=vamsi-release',
+        '--release=vamsi-release-${BUILD_ID}',
         '--region=asia-east1',
         '--project=enhub-cloud-interns'
       ]
