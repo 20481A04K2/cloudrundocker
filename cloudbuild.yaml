@@ -33,7 +33,7 @@ steps:
         'asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
       ]
 
-  # Step 4: Apply delivery pipeline and target YAML (clouddeploy.yaml)
+  # Step 4: Apply Cloud Deploy Delivery Pipeline and Target configuration
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
@@ -44,7 +44,7 @@ steps:
       ]
     id: apply-deploy-config
 
-  # Step 5: Create a release using Cloud Deploy
+  # Step 5: Create a Release using Cloud Deploy
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
