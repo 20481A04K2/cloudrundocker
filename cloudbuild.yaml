@@ -62,7 +62,7 @@ steps:
     args:
       [
         'deploy', 'rollouts', 'approve',
-        '--release=vamsi-release',
+        '--release=vamsi-release1',
         '--region=asia-east1',
         '--project=enhub-cloud-interns'
       ]
