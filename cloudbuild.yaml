@@ -50,13 +50,13 @@ steps:
     args:
       - '-c'
       - |
-        # Define the release name here, but DO NOT pass it as a substitution variable
-        RELEASE_NAME="vamsi-release"
+        RELEASE_NAME="vamsi-release-$(date +'%Y%m%d%H%M%S')"  # Adding timestamp for unique release names
         
-        # Check if the release exists
         echo "Checking if release $RELEASE_NAME exists."
+        
+        # Check if the release exists using gcloud command
         RELEASE_EXISTS=$(gcloud deploy releases describe $RELEASE_NAME --project=enhub-cloud-interns --region=asia-east1 --format="value(name)" 2>/dev/null || echo "not_found")
-
+        
         if [ "$RELEASE_EXISTS" == "not_found" ]; then
           echo "Release does not exist. Creating it now."
           gcloud deploy releases create $RELEASE_NAME \
@@ -75,7 +75,7 @@ steps:
     args:
       [
         'deploy', 'rollouts', 'approve',
-        '--release=vamsi-release',
+        '--release=vamsi-release',  # Use static release name
         '--region=asia-east1',
         '--project=enhub-cloud-interns'
       ]
