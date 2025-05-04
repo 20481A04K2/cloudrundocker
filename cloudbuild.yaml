@@ -1,5 +1,5 @@
 steps:
-  # Step 1: Ensure Artifact Registry repository exists
+  # Step 1: Check/create Artifact Registry repository
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -17,34 +17,21 @@ steps:
 
   # Step 2: Build Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args:
-      [
-        'build',
-        '-t',
-        'asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest',
-        '.'
-      ]
+    args: [
+      'build',
+      '-t',
+      'asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest',
+      '.'
+    ]
 
   # Step 3: Push Docker image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args:
-      [
-        'push',
-        'asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
-      ]
+    args: [
+      'push',
+      'asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
+    ]
 
-  # Step 4: Apply delivery pipeline and target YAML (clouddeploy.yaml)
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args:
-      [
-        'deploy', 'apply',
-        '--file=clouddeploy.yaml',
-        '--region=asia-east1',
-        '--project=enhub-cloud-interns'
-      ]
-    id: apply-deploy-config
-
-  # Step 5: Create a release using Cloud Deploy
+  # Step 4: Create a release
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
@@ -52,12 +39,13 @@ steps:
         '--project=enhub-cloud-interns',
         '--region=asia-east1',
         '--delivery-pipeline=vamsi-pipeline',
-        '--images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
+        '--images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest',
+        '--skaffold-file=clouddeploy.yaml'
       ]
     id: create-release
-    waitFor: ['apply-deploy-config']
+    waitFor: ['-']
 
-  # Step 6: Promote the release to the target
+  # Step 5: Promote the release
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
@@ -73,5 +61,4 @@ images:
 options:
   logging: CLOUD_LOGGING_ONLY
 
-# Use your compute engine default service account
 serviceAccount: 1064351983714-compute@developer.gserviceaccount.com
