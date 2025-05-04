@@ -48,7 +48,7 @@ steps:
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
-        'deploy', 'releases', 'create', 'vamsi-release',
+        'deploy', 'releases', 'create', 'vamsi-release1',
         '--project=enhub-cloud-interns',
         '--region=asia-east1',
         '--delivery-pipeline=vamsi-pipeline',
