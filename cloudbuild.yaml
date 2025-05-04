@@ -1,21 +1,39 @@
 steps:
-  # Step 1: Check/create Artifact Registry repository
+  # Step 1: Create Artifact Registry if it doesn't exist
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
         if ! gcloud artifacts repositories describe vamsi-artifact-cloudrun --location=asia-east1 --project=enhub-cloud-interns; then
-          echo "Repository doesn't exist. Creating now."
+          echo "Creating Artifact Registry..."
           gcloud artifacts repositories create vamsi-artifact-cloudrun \
             --repository-format=docker \
             --location=asia-east1 \
             --project=enhub-cloud-interns
         else
-          echo "Repository already exists."
+          echo "Artifact Registry already exists."
         fi
 
-  # Step 2: Build Docker image
+  # Step 2: Apply Cloud Deploy target from YAML
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+      'deploy', 'targets', 'apply', 'prod',
+      '--file=target.yaml',
+      '--region=asia-east1',
+      '--project=enhub-cloud-interns'
+    ]
+
+  # Step 3: Apply Cloud Deploy pipeline from YAML
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+      'deploy', 'apply',
+      '--file=pipeline.yaml',
+      '--region=asia-east1',
+      '--project=enhub-cloud-interns'
+    ]
+
+  # Step 4: Build Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
@@ -24,15 +42,16 @@ steps:
       '.'
     ]
 
-  # Step 3: Push Docker image to Artifact Registry
+  # Step 5: Push Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'push',
       'asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
     ]
 
-  # Step 4: Create a release for the build image
+  # Step 6: Create Cloud Deploy release
   - name: 'gcr.io/cloud-builders/gcloud'
+    id: create-release
     args: [
       'deploy', 'releases', 'create', 'vamsi-release-${BUILD_ID}',
       '--project=enhub-cloud-interns',
@@ -40,17 +59,16 @@ steps:
       '--delivery-pipeline=vamsi-pipeline',
       '--images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
     ]
-    id: create-release
-    waitFor: ['-']  # Ensures this step runs after all previous steps.
+    waitFor: ['-']
 
-  # Step 5: Promote the release to the 'prod' target
+  # Step 7: Promote release to Cloud Run (prod)
   - name: 'gcr.io/cloud-builders/gcloud'
     args: [
       'deploy', 'releases', 'promote', 'vamsi-release-${BUILD_ID}',
       '--project=enhub-cloud-interns',
       '--region=asia-east1'
     ]
-    waitFor: ['create-release']  # Now references the correct step ID.
+    waitFor: ['create-release']
 
 images:
   - 'asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
