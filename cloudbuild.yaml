@@ -44,7 +44,28 @@ steps:
       ]
     id: apply-deploy-config
 
-  # Step 5: Create a Release using Cloud Deploy
+  # Step 5: Delete existing release if it exists
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        if gcloud deploy releases describe vamsi-release \
+          --project=enhub-cloud-interns \
+          --region=asia-east1 \
+          --delivery-pipeline=vamsi-pipeline >/dev/null 2>&1; then
+          echo "Release vamsi-release exists. Deleting..."
+          gcloud deploy releases delete vamsi-release \
+            --project=enhub-cloud-interns \
+            --region=asia-east1 \
+            --delivery-pipeline=vamsi-pipeline \
+            --quiet
+        else
+          echo "No existing release found."
+        fi
+    waitFor: ['apply-deploy-config']
+
+  # Step 6: Create a new release
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
@@ -57,7 +78,7 @@ steps:
     id: create-release
     waitFor: ['apply-deploy-config']
 
-  # Step 6: Promote the release to the target (no rollout ID required)
+  # Step 7: Promote the release to the target
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
