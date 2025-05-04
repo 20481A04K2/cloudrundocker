@@ -44,38 +44,25 @@ steps:
       ]
     id: apply-deploy-config
 
-  # Step 5: Check if the release exists and create it if not
+  # Step 5: Create a Release using Cloud Deploy
   - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
     args:
-      - '-c'
-      - |
-        RELEASE_NAME="vamsi-release-$(date +'%Y%m%d%H%M%S')"  # Adding timestamp for unique release names
-        
-        echo "Checking if release $RELEASE_NAME exists."
-        
-        # Check if the release exists using gcloud command
-        RELEASE_EXISTS=$(gcloud deploy releases describe $RELEASE_NAME --project=enhub-cloud-interns --region=asia-east1 --format="value(name)" 2>/dev/null || echo "not_found")
-        
-        if [ "$RELEASE_EXISTS" == "not_found" ]; then
-          echo "Release does not exist. Creating it now."
-          gcloud deploy releases create $RELEASE_NAME \
-            --project=enhub-cloud-interns \
-            --region=asia-east1 \
-            --delivery-pipeline=vamsi-pipeline \
-            --images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest
-        else
-          echo "Release already exists. Skipping creation."
-        fi
+      [
+        'deploy', 'releases', 'create', 'vamsi-release',
+        '--project=enhub-cloud-interns',
+        '--region=asia-east1',
+        '--delivery-pipeline=vamsi-pipeline',
+        '--images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
+      ]
     id: create-release
     waitFor: ['apply-deploy-config']
 
-  # Step 6: Promote the release to the target
+  # Step 6: Promote the release to the target (no rollout ID required)
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
         'deploy', 'rollouts', 'approve',
-        '--release=vamsi-release',  # Use static release name
+        '--release=vamsi-release',
         '--region=asia-east1',
         '--project=enhub-cloud-interns'
       ]
