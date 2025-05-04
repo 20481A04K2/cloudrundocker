@@ -33,7 +33,7 @@ steps:
         'asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
       ]
 
-  # Step 4: Apply Cloud Deploy configs (pipeline & target)
+  # Step 4: Apply Cloud Deploy Delivery Pipeline and Target configuration
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       [
@@ -44,7 +44,7 @@ steps:
       ]
     id: apply-deploy-config
 
-  # Step 5: Create a release with a timestamp-based unique name
+  # Step 5: Create a unique release using timestamp
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -61,7 +61,7 @@ steps:
     id: create-release
     waitFor: ['apply-deploy-config']
 
-  # Step 6: Promote rollout using the dynamic release name
+  # Step 6: Promote the release to the target
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
