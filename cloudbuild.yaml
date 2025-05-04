@@ -44,28 +44,33 @@ steps:
       ]
     id: apply-deploy-config
 
-  # Step 5: Create a Release using Cloud Deploy
+  # Step 5: Create a Release using Cloud Deploy with safe name
   - name: 'gcr.io/cloud-builders/gcloud'
-    args:
-      [
-        'deploy', 'releases', 'create', 'vamsi-release-${BUILD_ID}',
-        '--project=enhub-cloud-interns',
-        '--region=asia-east1',
-        '--delivery-pipeline=vamsi-pipeline',
-        '--images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
-      ]
     id: create-release
     waitFor: ['apply-deploy-config']
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        SAFE_ID=$(echo "${BUILD_ID}" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-' | cut -c1-30)
+        gcloud deploy releases create vamsi-release-${SAFE_ID} \
+          --project=enhub-cloud-interns \
+          --region=asia-east1 \
+          --delivery-pipeline=vamsi-pipeline \
+          --images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest
 
   # Step 6: Promote the release to the target
   - name: 'gcr.io/cloud-builders/gcloud'
-    args:
-      [
-        'deploy', 'releases', 'promote', 'vamsi-release-${BUILD_ID}',
-        '--project=enhub-cloud-interns',
-        '--region=asia-east1'
-      ]
+    id: promote-release
     waitFor: ['create-release']
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        SAFE_ID=$(echo "${BUILD_ID}" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-' | cut -c1-30)
+        gcloud deploy releases promote vamsi-release-${SAFE_ID} \
+          --project=enhub-cloud-interns \
+          --region=asia-east1
 
 images:
   - 'asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
