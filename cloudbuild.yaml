@@ -44,37 +44,32 @@ steps:
       ]
     id: apply-deploy-config
 
-  # Step 5: Create a Release with safe name
+  # Step 5: Create a Release using Cloud Deploy (use bash to expand BUILD_ID)
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: create-release
-    waitFor: ['apply-deploy-config']
-    entrypoint: 'bash'
+    entrypoint: bash
     args:
       - '-c'
       - |
-        SAFE_ID=$(echo "$BUILD_ID" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-' | cut -c1-30)
-        RELEASE_NAME="vamsi-release-${SAFE_ID}"
-        echo "Creating release: $RELEASE_NAME"
-        gcloud deploy releases create "$RELEASE_NAME" \
+        RELEASE_ID="vamsi-release-${BUILD_ID}"
+        gcloud deploy releases create "$RELEASE_ID" \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
           --delivery-pipeline=vamsi-pipeline \
           --images=vamsi-image=asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest
+    id: create-release
+    waitFor: ['apply-deploy-config']
 
   # Step 6: Promote the release
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: promote-release
-    waitFor: ['create-release']
-    entrypoint: 'bash'
+    entrypoint: bash
     args:
       - '-c'
       - |
-        SAFE_ID=$(echo "$BUILD_ID" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-' | cut -c1-30)
-        RELEASE_NAME="vamsi-release-${SAFE_ID}"
-        echo "Promoting release: $RELEASE_NAME"
-        gcloud deploy releases promote "$RELEASE_NAME" \
+        RELEASE_ID="vamsi-release-${BUILD_ID}"
+        gcloud deploy releases promote "$RELEASE_ID" \
           --project=enhub-cloud-interns \
           --region=asia-east1
+    waitFor: ['create-release']
 
 images:
   - 'asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
@@ -82,5 +77,4 @@ images:
 options:
   logging: CLOUD_LOGGING_ONLY
 
-# Use your Compute Engine default service account
 serviceAccount: 1064351983714-compute@developer.gserviceaccount.com
