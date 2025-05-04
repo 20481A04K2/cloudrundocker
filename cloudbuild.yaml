@@ -50,15 +50,16 @@ steps:
     args:
       - '-c'
       - |
+        RELEASE_NAME="vamsi-release-$(date +%Y%m%d%H%M%S)"
         RELEASE_EXISTS=$$(gcloud deploy releases list \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
-          --filter="name:vamsi-release" \
+          --filter="name:$$RELEASE_NAME" \
           --format="value(name)")
 
         if [ -z "$$RELEASE_EXISTS" ]; then
           echo "Release doesn't exist. Creating now."
-          gcloud deploy releases create vamsi-release-$$BUILD_ID \
+          gcloud deploy releases create $$RELEASE_NAME \
             --project=enhub-cloud-interns \
             --region=asia-east1 \
             --delivery-pipeline=vamsi-pipeline \
@@ -75,16 +76,19 @@ steps:
     args:
       - '-c'
       - |
+        RELEASE_NAME="vamsi-release-$(date +%Y%m%d%H%M%S)" # Ensure the release name is consistently used
         ROLLOUT_EXISTS=$$(gcloud deploy rollouts list \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
-          --filter="release:vamsi-release-$$BUILD_ID" \
+          --delivery-pipeline=vamsi-pipeline \
+          --release=$$RELEASE_NAME \
+          --filter="release:$$RELEASE_NAME" \
           --format="value(rolloutId)")
 
         if [ -z "$$ROLLOUT_EXISTS" ]; then
           echo "Rollout doesn't exist. Creating now."
           gcloud deploy rollouts advance \
-            --release=vamsi-release-$$BUILD_ID \
+            --release=$$RELEASE_NAME \
             --region=asia-east1 \
             --project=enhub-cloud-interns \
             --delivery-pipeline=vamsi-pipeline
@@ -103,11 +107,13 @@ steps:
         ROLLOUT_ID=$$(gcloud deploy rollouts list \
           --region=asia-east1 \
           --project=enhub-cloud-interns \
-          --filter="release:vamsi-release-$$BUILD_ID" \
+          --delivery-pipeline=vamsi-pipeline \
+          --release=$$RELEASE_NAME \
+          --filter="release:$$RELEASE_NAME" \
           --format="value(rolloutId)")
 
         if [ -z "$$ROLLOUT_ID" ]; then
-          echo "No rollout found for release vamsi-release-$$BUILD_ID. Exiting."
+          echo "No rollout found for release $$RELEASE_NAME. Exiting."
           exit 1
         fi
 
