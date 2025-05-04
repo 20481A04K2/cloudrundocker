@@ -1,4 +1,3 @@
-# skaffold.yaml
 apiVersion: skaffold/v2beta29
 kind: Config
 metadata:
