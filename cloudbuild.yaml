@@ -76,7 +76,11 @@ steps:
     args:
       - '-c'
       - |
-        RELEASE_NAME="vamsi-release-$(date +%Y%m%d%H%M%S)" # Ensure the release name is consistently used
+        # Ensure the release name is consistently used
+        RELEASE_NAME="vamsi-release-$(date +%Y%m%d%H%M%S)"
+        
+        echo "Release name is: $$RELEASE_NAME"  # Debugging the release name
+        
         ROLLOUT_EXISTS=$$(gcloud deploy rollouts list \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
