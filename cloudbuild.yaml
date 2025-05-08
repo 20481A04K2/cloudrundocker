@@ -73,7 +73,7 @@ steps:
     waitFor: ['apply-deploy-config']
 
 
-  # Step 6: Check if Rollout exists, if not, create it
+  # Step 6: Create Rollout using default rollout ID
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -82,17 +82,18 @@ steps:
         source /workspace/release.env
         echo "Using release: $$RELEASE_NAME"
 
+        DEFAULT_ROLLOUT_ID="rollout-000001"
         ROLLOUT_EXISTS=$$(gcloud deploy rollouts list \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
           --delivery-pipeline=vamsi-pipeline \
           --release=$$RELEASE_NAME \
-          --filter="release:$$RELEASE_NAME" \
+          --filter="rolloutId=$$DEFAULT_ROLLOUT_ID" \
           --format="value(rolloutId)")
 
         if [ -z "$$ROLLOUT_EXISTS" ]; then
           echo "Rollout doesn't exist. Creating now."
-          gcloud deploy rollouts advance \
+          gcloud deploy rollouts advance $$DEFAULT_ROLLOUT_ID \
             --release=$$RELEASE_NAME \
             --region=asia-east1 \
             --project=enhub-cloud-interns \
@@ -100,8 +101,7 @@ steps:
         else
           echo "Rollout already exists."
         fi
-    id: create-rollout
-    waitFor: ['create-release']
+
 
 
   # Step 7: Approve the rollout
