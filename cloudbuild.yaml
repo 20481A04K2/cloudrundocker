@@ -44,7 +44,7 @@ steps:
       ]
     id: apply-deploy-config
 
-  # Step 5: Check if Release exists, if not, create it
+  # Step 5: Create release if not exists
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -56,12 +56,12 @@ steps:
         RELEASE_EXISTS=$$(gcloud deploy releases list \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
-          --filter="name:$$RELEASE_NAME" \
+          --filter="name=$$RELEASE_NAME" \
           --format="value(name)")
 
         if [ -z "$$RELEASE_EXISTS" ]; then
           echo "Release doesn't exist. Creating now."
-          gcloud deploy releases create $$RELEASE_NAME \
+          gcloud deploy releases create "$$RELEASE_NAME" \
             --project=enhub-cloud-interns \
             --region=asia-east1 \
             --delivery-pipeline=vamsi-pipeline \
@@ -72,8 +72,7 @@ steps:
     id: create-release
     waitFor: ['apply-deploy-config']
 
-
-  # Step 6: Create Rollout using default rollout ID
+  # Step 6: Create Rollout
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -92,17 +91,17 @@ steps:
           --format="value(rolloutId)")
 
         if [ -z "$$ROLLOUT_EXISTS" ]; then
-          echo "Rollout doesn't exist. Creating now."
-          gcloud deploy rollouts advance $$DEFAULT_ROLLOUT_ID \
-            --release=$$RELEASE_NAME \
+          echo "Creating rollout $$DEFAULT_ROLLOUT_ID for release $$RELEASE_NAME"
+          gcloud deploy rollouts advance "$$DEFAULT_ROLLOUT_ID" \
+            --release="$$RELEASE_NAME" \
             --region=asia-east1 \
             --project=enhub-cloud-interns \
             --delivery-pipeline=vamsi-pipeline
         else
-          echo "Rollout already exists."
+          echo "Rollout $$DEFAULT_ROLLOUT_ID already exists."
         fi
-
-
+    id: create-rollout
+    waitFor: ['create-release']
 
   # Step 7: Approve the rollout
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -117,7 +116,6 @@ steps:
           --project=enhub-cloud-interns \
           --delivery-pipeline=vamsi-pipeline \
           --release=$$RELEASE_NAME \
-          --filter="release:$$RELEASE_NAME" \
           --format="value(rolloutId)")
 
         if [ -z "$$ROLLOUT_ID" ]; then
@@ -130,7 +128,6 @@ steps:
           --region=asia-east1 \
           --project=enhub-cloud-interns
     waitFor: ['create-rollout']
-
 
 images:
   - 'asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
