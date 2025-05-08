@@ -51,6 +51,8 @@ steps:
       - '-c'
       - |
         RELEASE_NAME="vamsi-release-$(date +%Y%m%d%H%M%S)"
+        echo "RELEASE_NAME=$$RELEASE_NAME" > /workspace/release.env
+
         RELEASE_EXISTS=$$(gcloud deploy releases list \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
@@ -70,17 +72,16 @@ steps:
     id: create-release
     waitFor: ['apply-deploy-config']
 
+
   # Step 6: Check if Rollout exists, if not, create it
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        # Ensure the release name is consistently used
-        RELEASE_NAME="vamsi-release-$(date +%Y%m%d%H%M%S)"
-        
-        echo "Release name is: $$RELEASE_NAME"  # Debugging the release name
-        
+        source /workspace/release.env
+        echo "Using release: $$RELEASE_NAME"
+
         ROLLOUT_EXISTS=$$(gcloud deploy rollouts list \
           --project=enhub-cloud-interns \
           --region=asia-east1 \
@@ -102,12 +103,15 @@ steps:
     id: create-rollout
     waitFor: ['create-release']
 
+
   # Step 7: Approve the rollout
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
+        source /workspace/release.env
+
         ROLLOUT_ID=$$(gcloud deploy rollouts list \
           --region=asia-east1 \
           --project=enhub-cloud-interns \
@@ -126,6 +130,7 @@ steps:
           --region=asia-east1 \
           --project=enhub-cloud-interns
     waitFor: ['create-rollout']
+
 
 images:
   - 'asia-east1-docker.pkg.dev/enhub-cloud-interns/vamsi-artifact-cloudrun/vamsi-image:latest'
